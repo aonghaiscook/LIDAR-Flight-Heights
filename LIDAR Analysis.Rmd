@@ -13,8 +13,8 @@ library(mapdata)
 library(maps)
 library(maptools)
 library(scatterplot3d)
+library(RCurl)
 
-setwd("Y://SG12 LiDAR Flight Heights/analysis")
 
 ```
 
@@ -62,7 +62,7 @@ lines(c(-2.17, -2.66), c(56.34, 56.34), lty = 2, col = "red")
 Now bring in the survey data & plot
 
 ```{r}
-survey.data = read.table ("BTO MSS LiDAR data set.csv", header = T, sep = ",")
+survey.data = read.csv(text=getURL("https://raw.githubusercontent.com/aonghaiscook/LIDAR-Flight-Heights/master/BTO%20MSS%20LiDAR%20data%20set.csv"), header=T)
 ```
 
 lets try a 3d plot of some of the data
@@ -146,9 +146,9 @@ Gannet first
 
 ```{r}
 
-gannetDAS = read.table("Gannet_Modelled_distribution_DIGITAL_AERIAL_SURVEY.csv", header = T, sep = ",")
+gannetDAS = read.csv(text=getURL("https://raw.githubusercontent.com/aonghaiscook/LIDAR-Flight-Heights/master/Gannet_Modelled_distribution_DIGITAL_AERIAL_SURVEY.csv"), header=T)
 
-boatDATA = read.table("FlightHeight_BOAT_DISTRIBUTIONS.csv", header = T, sep = ",")
+boatDATA = read.csv(text=getURL("https://raw.githubusercontent.com/aonghaiscook/LIDAR-Flight-Heights/master/FlightHeight_BOAT_DISTRIBUTIONS.csv"), header=T)
 
 
 gx.dat$flightROUND = round(gx.dat$Bird.flight.height)
@@ -172,7 +172,7 @@ Now Kittiwake
 
 ```{r}
 
-KittDAS = read.table("Kittiwake_Modelled_distribution_DIGITAL_AERIAL_SURVEY.csv", header = T, sep = ",")
+KittDAS = read.csv(text=getURL("https://raw.githubusercontent.com/aonghaiscook/LIDAR-Flight-Heights/master/Kittiwake_Modelled_distribution_DIGITAL_AERIAL_SURVEY.csv"), header=T)
 
 ki.dat$flightROUND = round(ki.dat$Bird.flight.height)
 
@@ -203,23 +203,6 @@ lines(boatDATA$Height, boatDATA$Black_Legged_Kittiwake, col = "blue")
 lines(seq(1,300,1), ki_poss.height.dist)
 
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 The digital image/LiDAR beam forms an effective pyramid with the plane at the point, what proportion of the ground area is missing at each height?
 
