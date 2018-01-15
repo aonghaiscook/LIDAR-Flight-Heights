@@ -1,0 +1,282 @@
+---
+title: "SG12 Flight Height Analysis"
+output: html_notebook
+---
+
+This is the analysis of flight height data collected LiDAR. Data were collected from the Outer Forth & Tay area on the 20th & 22nd of September 2017. The site was selected with reference to the digital aerial surveys carried out by HiDEF, with the intention of maximising the number of birds that could be recorded. Data were collected along 8 transects, each 30km and spaced approximately 2.5km apart. 
+
+
+First load necessary libraries & set working directory
+
+```{r}
+library(mapdata)
+library(maps)
+library(maptools)
+library(scatterplot3d)
+
+setwd("Y://SG12 LiDAR Flight Heights/analysis")
+
+```
+
+Now plot survey area & transects
+
+On the 20th September, weather conditions were optimal for flying North-South along the following transects
+
+```{r}
+map('worldHires',xlim=c(-3,-2),ylim=c(56,56.5), fill = TRUE, col = "black", mar = c(2,2,2,2))
+
+lines(c(-2.56, -2.55), c(56.53, 56.26), lty = 2, col = "red")
+lines(c(-2.51, -2.51), c(56.26, 56.53), lty = 2, col = "red")    
+lines(c(-2.47, -2.47), c(56.26, 56.53), lty = 2, col = "red")    
+lines(c(-2.43, -2.43), c(56.26, 56.53), lty = 2, col = "red")    
+lines(c(-2.39, -2.39), c(56.26, 56.53), lty = 2, col = "red")    
+lines(c(-2.35, -2.35), c(56.26, 56.53), lty = 2, col = "red")    
+lines(c(-2.31, -2.31), c(56.26, 56.53), lty = 2, col = "red")    
+lines(c(-2.27, -2.27), c(56.26, 56.53), lty = 2, col = "red")    
+
+
+
+```
+
+
+
+
+On the 22nd September, weather conditions were optimal for flying East-West along the following transects
+
+```{r}
+map('worldHires',xlim=c(-3,-2),ylim=c(56,56.5), fill = TRUE, col = "black", mar = c(2,2,2,2))
+
+lines(c(-2.66, -2.17), c(56.49, 56.49), lty = 2, col = "red")
+lines(c(-2.17, -2.66), c(56.47, 56.47), lty = 2, col = "red")    
+lines(c(-2.17, -2.66), c(56.45, 56.45), lty = 2, col = "red")    
+lines(c(-2.17, -2.66), c(56.43, 56.43), lty = 2, col = "red")    
+lines(c(-2.17, -2.66), c(56.40, 56.40), lty = 2, col = "red")    
+lines(c(-2.17, -2.66), c(56.38, 56.38), lty = 2, col = "red")    
+lines(c(-2.17, -2.66), c(56.36, 56.36), lty = 2, col = "red")    
+lines(c(-2.17, -2.66), c(56.34, 56.34), lty = 2, col = "red")    
+
+
+
+```
+
+Now bring in the survey data & plot
+
+```{r}
+survey.data = read.table ("BTO MSS LiDAR data set.csv", header = T, sep = ",")
+```
+
+lets try a 3d plot of some of the data
+
+useful website for 3d plots here
+
+http://www.sthda.com/english/wiki/scatterplot3d-3d-graphics-r-software-and-data-visualization
+
+for Gannet
+
+```{r}
+
+gx.dat = subset(survey.data, Species == "Gannet")
+
+gx.dat$colours = NA
+gx.dat$colours[gx.dat$Bird.flight.height < 22] = "#CCCCCC"
+gx.dat$colours[gx.dat$Bird.flight.height >= 22] = "#EE0000"
+
+
+
+scatterplot3d(x = gx.dat$Longitude, y = gx.dat$Latitude, z = gx.dat$Bird.flight.height,  pch = 19, xlab = "Longitude", ylab = "Latitude", zlab = "Flight Height (m)", box = FALSE, type = "h", color = gx.dat$colours)
+
+```
+
+For Kittiwake
+
+```{r}
+
+ki.dat = subset(survey.data, Species == "Kittiwake PROBABLE")
+
+ki.dat$colours = NA
+ki.dat$colours[ki.dat$Bird.flight.height < 22] = "#CCCCCC"
+ki.dat$colours[ki.dat$Bird.flight.height >= 22] = "#EE0000"
+
+
+
+scatterplot3d(x = ki.dat$Longitude, y = ki.dat$Latitude, z = ki.dat$Bird.flight.height,  pch = 19, xlab = "Longitude", ylab = "Latitude", zlab = "Flight Height (m)", box = FALSE, type = "h", color = ki.dat$colours)
+
+```
+
+For Grey backed gull - likely to be kittiwakes
+
+```{r}
+ki_poss.dat = subset(survey.data, Species == "Grey backed gull")
+
+ki_poss.dat$colours = NA
+ki_poss.dat$colours[ki_poss.dat$Bird.flight.height < 22] = "#CCCCCC"
+ki_poss.dat$colours[ki_poss.dat$Bird.flight.height >= 22] = "#EE0000"
+
+
+
+scatterplot3d(x = ki_poss.dat$Longitude, y = ki_poss.dat$Latitude, z = ki_poss.dat$Bird.flight.height,  pch = 19, xlab = "Longitude", ylab = "Latitude", zlab = "Flight Height (m)", box = FALSE, type = "h", color = ki_poss.dat$colours)
+
+```
+
+A quick look suggests that the kittiwake & grey backed gull patterns are similar. 
+
+
+lets have a look at histograms of bird flight height
+
+```{r}
+par(mfrow = c(1,3))
+
+hist(gx.dat$Bird.flight.height,breaks = 50, main = "Gannet")
+hist(ki.dat$Bird.flight.height,breaks = 50, main = "Kittiwake")
+hist(ki_poss.dat$Bird.flight.height,breaks = 50, main = "Possible Kittiwake")
+
+
+
+
+```
+
+
+Again Kittiwake & possible Kittiwake look similar..At first glance, there appear to be similarities with the plots presented in the digital aerial survey report, particularly for kittiwake. 
+
+
+Lets examine in more detail...
+As an initial first step, we can bin the data to the nearest metre and then re-plot histograms & compare to distributions from boat & digital aerial survey
+
+Gannet first
+
+```{r}
+
+gannetDAS = read.table("Gannet_Modelled_distribution_DIGITAL_AERIAL_SURVEY.csv", header = T, sep = ",")
+
+boatDATA = read.table("FlightHeight_BOAT_DISTRIBUTIONS.csv", header = T, sep = ",")
+
+
+gx.dat$flightROUND = round(gx.dat$Bird.flight.height)
+
+gx.height.dist = vector()
+
+for(i in 1:300){
+  
+  gx.height.dist[i] = nrow(subset(gx.dat, flightROUND == i))/nrow(gx.dat)
+  
+}
+
+plot(seq(1,300,1),gx.height.dist, xlim = c(0,300), ylim = c(0,0.25), xlab = "Height Above Sea Level", ylab = "Proportion of Birds", type = "l")
+
+lines(gannetDAS$height, gannetDAS$prob_med, col = "red")
+lines(boatDATA$Height, boatDATA$Northern_Gannet, col = "blue")
+
+```
+
+Now Kittiwake
+
+```{r}
+
+KittDAS = read.table("Kittiwake_Modelled_distribution_DIGITAL_AERIAL_SURVEY.csv", header = T, sep = ",")
+
+ki.dat$flightROUND = round(ki.dat$Bird.flight.height)
+
+ki.height.dist = vector()
+
+for(i in 1:300){
+  
+  ki.height.dist[i] = nrow(subset(ki.dat, flightROUND == i))/nrow(ki.dat)
+  
+}
+
+ki_poss.dat$flightROUND = round(ki_poss.dat$Bird.flight.height)
+
+ki_poss.height.dist = vector()
+
+for(i in 1:300){
+  
+  ki_poss.height.dist[i] = nrow(subset(ki_poss.dat, flightROUND == i))/nrow(ki_poss.dat)
+  
+}
+
+
+
+plot(seq(1,300,1),ki.height.dist, xlim = c(0,300), ylim = c(0,0.35), xlab = "Height Above Sea Level", ylab = "Proportion of Birds", type = "l")
+
+lines(KittDAS$height, KittDAS$prob_med, col = "red")
+lines(boatDATA$Height, boatDATA$Black_Legged_Kittiwake, col = "blue")
+lines(seq(1,300,1), ki_poss.height.dist)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The digital image/LiDAR beam forms an effective pyramid with the plane at the point, what proportion of the ground area is missing at each height?
+
+```{r}
+# plane altitude 300m
+# transect width 350m
+
+## first treat pyramid as 2 right angled triangles & work out length of hypotenuse
+
+h2 = (300^2) + (175^2)
+h = sqrt(h2)
+
+## now use trignometry to work out angles at base of the pyramid
+
+base.theta = asin(300/h)
+
+## now for each height, we can work out the proportion of the total ground area covered, again using trigonometry
+
+miss.area = vector()
+prop.miss.area = vector()
+
+for (i in 1:300){
+  
+  opp = i / tan(base.theta)   
+  
+  miss.area[i] = opp * i 
+  if(i == 1) area2 = miss.area[i]
+  if(i != 1) area2 = miss.area[i] - miss.area[i-1]
+  
+  prop.miss.area[i] = 1-((350 - area2)/350)
+  
+  
+
+}
+  
+  
+plot(seq(1,300,1), prop.miss.area, type = "l", xlab = "Height above Sea-level", ylab = "Proportion Of 1m Height Band Not Covered")
+
+
+
+
+
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
