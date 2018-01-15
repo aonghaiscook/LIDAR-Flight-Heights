@@ -1,6 +1,9 @@
 ---
 title: "SG12 Flight Height Analysis"
-output: html_notebook
+output:
+  pdf_document: default
+  html_notebook: default
+  html_document: default
 ---
 
 This is the analysis of flight height data collected LiDAR. Data were collected from the Outer Forth & Tay area on the 20th & 22nd of September 2017. The site was selected with reference to the digital aerial surveys carried out by HiDEF, with the intention of maximising the number of birds that could be recorded. Data were collected along 8 transects, each 30km and spaced approximately 2.5km apart. 
@@ -161,7 +164,7 @@ for(i in 1:300){
   
 }
 
-plot(seq(1,300,1),gx.height.dist, xlim = c(0,300), ylim = c(0,0.25), xlab = "Height Above Sea Level", ylab = "Proportion of Birds", type = "l")
+plot(seq(1,300,1),gx.height.dist, xlim = c(0,100), ylim = c(0,0.25), xlab = "Height Above Sea Level", ylab = "Proportion of Birds", type = "l")
 
 lines(gannetDAS$height, gannetDAS$prob_med, col = "red")
 lines(boatDATA$Height, boatDATA$Northern_Gannet, col = "blue")
@@ -175,7 +178,6 @@ Now Kittiwake
 KittDAS = read.csv(text=getURL("https://raw.githubusercontent.com/aonghaiscook/LIDAR-Flight-Heights/master/Kittiwake_Modelled_distribution_DIGITAL_AERIAL_SURVEY.csv"), header=T)
 
 ki.dat$flightROUND = round(ki.dat$Bird.flight.height)
-
 ki.height.dist = vector()
 
 for(i in 1:300){
@@ -196,11 +198,11 @@ for(i in 1:300){
 
 
 
-plot(seq(1,300,1),ki.height.dist, xlim = c(0,300), ylim = c(0,0.35), xlab = "Height Above Sea Level", ylab = "Proportion of Birds", type = "l")
+plot(seq(1,300,1),ki.height.dist, xlim = c(0,100), ylim = c(0,0.35), xlab = "Height Above Sea Level", ylab = "Proportion of Birds", type = "l")
 
 lines(KittDAS$height, KittDAS$prob_med, col = "red")
 lines(boatDATA$Height, boatDATA$Black_Legged_Kittiwake, col = "blue")
-lines(seq(1,300,1), ki_poss.height.dist)
+lines(seq(1,300,1), ki_poss.height.dist, lty = 2)
 
 ```
 
@@ -250,6 +252,18 @@ plot(seq(1,300,1), prop.miss.area, type = "l", xlab = "Height above Sea-level", 
 
 
 ```
+
+
+## Simulated Distributions
+
+
+Based on the initial plots above, data look suitable for deriving flight height distributions. It is important that the distributions underlying these data are sufficiently flexible that they do not constrain the shape of the flight height distribution, but not so flexible that they overfit to the data. 
+
+In order to test this, we are going to simulate data using different distributions and then try and fit these data using each distribution in turn. We will assess how well different distributions fit the data by investigating 1) the proportion of values outside bootstrapped confidence intervals and 2) comparing predicted and observed proportions of birds within a 20-120m flight height window. 
+
+The distributions we will test are 
+
+
 
 
 
