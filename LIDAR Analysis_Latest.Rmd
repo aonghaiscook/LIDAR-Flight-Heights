@@ -1,0 +1,761 @@
+---
+title: "SG12 Flight Height Analysis"
+output:
+  html_document: default
+  html_notebook: default
+  pdf_document: default
+---
+
+This is the analysis of flight height data collected LiDAR. Data were collected from the Outer Forth & Tay area on the 20th & 22nd of September 2017. The site was selected with reference to the digital aerial surveys carried out by HiDEF, with the intention of maximising the number of birds that could be recorded. Data were collected along 8 transects, each 30km and spaced approximately 2.5km apart. 
+
+
+First load necessary libraries & set working directory
+
+```{r}
+library(mapdata)
+library(maps)
+library(maptools)
+library(scatterplot3d)
+library(RCurl)
+
+source("C://Users/aonghais/Dropbox/KeyFortwitteR.txt")
+
+```
+
+
+## Survey Information
+
+Now plot survey area & transects
+
+On the 20th September, weather conditions were optimal for flying North-South along the following transects
+
+```{r}
+map('worldHires',xlim=c(-3,-2),ylim=c(56,56.5), fill = TRUE, col = "black", mar = c(2,2,2,2))
+
+lines(c(-2.56, -2.55), c(56.53, 56.26), lty = 2, col = "red")
+lines(c(-2.51, -2.51), c(56.26, 56.53), lty = 2, col = "red")    
+lines(c(-2.47, -2.47), c(56.26, 56.53), lty = 2, col = "red")    
+lines(c(-2.43, -2.43), c(56.26, 56.53), lty = 2, col = "red")    
+lines(c(-2.39, -2.39), c(56.26, 56.53), lty = 2, col = "red")    
+lines(c(-2.35, -2.35), c(56.26, 56.53), lty = 2, col = "red")    
+lines(c(-2.31, -2.31), c(56.26, 56.53), lty = 2, col = "red")    
+lines(c(-2.27, -2.27), c(56.26, 56.53), lty = 2, col = "red")    
+
+
+
+```
+
+
+
+
+On the 22nd September, weather conditions were optimal for flying East-West along the following transects
+
+```{r}
+map('worldHires',xlim=c(-3,-2),ylim=c(56,56.5), fill = TRUE, col = "black", mar = c(2,2,2,2))
+
+lines(c(-2.66, -2.17), c(56.49, 56.49), lty = 2, col = "red")
+lines(c(-2.17, -2.66), c(56.47, 56.47), lty = 2, col = "red")    
+lines(c(-2.17, -2.66), c(56.45, 56.45), lty = 2, col = "red")    
+lines(c(-2.17, -2.66), c(56.43, 56.43), lty = 2, col = "red")    
+lines(c(-2.17, -2.66), c(56.40, 56.40), lty = 2, col = "red")    
+lines(c(-2.17, -2.66), c(56.38, 56.38), lty = 2, col = "red")    
+lines(c(-2.17, -2.66), c(56.36, 56.36), lty = 2, col = "red")    
+lines(c(-2.17, -2.66), c(56.34, 56.34), lty = 2, col = "red")    
+
+
+
+```
+
+
+## Initial Data Exploration
+
+Now bring in the survey data & plot
+
+```{r}
+survey.data = read.csv(text=getURL("https://raw.githubusercontent.com/aonghaiscook/LIDAR-Flight-Heights/master/BTO%20MSS%20LiDAR%20data%20set.csv"), header=T)
+```
+
+lets try a 3d plot of some of the data
+
+useful website for 3d plots here
+
+http://www.sthda.com/english/wiki/scatterplot3d-3d-graphics-r-software-and-data-visualization
+
+for Gannet
+
+```{r}
+
+gx.dat = subset(survey.data, Species == "Gannet")
+
+gx.dat$colours = NA
+gx.dat$colours[gx.dat$Bird.flight.height < 22] = "#CCCCCC"
+gx.dat$colours[gx.dat$Bird.flight.height >= 22] = "#EE0000"
+
+
+
+scatterplot3d(x = gx.dat$Longitude, y = gx.dat$Latitude, z = gx.dat$Bird.flight.height,  pch = 19, xlab = "Longitude", ylab = "Latitude", zlab = "Flight Height (m)", box = FALSE, type = "h", color = gx.dat$colours)
+
+```
+
+For Kittiwake
+
+```{r}
+
+ki.dat = subset(survey.data, Species == "Kittiwake PROBABLE")
+
+ki.dat$colours = NA
+ki.dat$colours[ki.dat$Bird.flight.height < 22] = "#CCCCCC"
+ki.dat$colours[ki.dat$Bird.flight.height >= 22] = "#EE0000"
+
+
+
+scatterplot3d(x = ki.dat$Longitude, y = ki.dat$Latitude, z = ki.dat$Bird.flight.height,  pch = 19, xlab = "Longitude", ylab = "Latitude", zlab = "Flight Height (m)", box = FALSE, type = "h", color = ki.dat$colours)
+
+```
+
+For Grey backed gull - likely to be kittiwakes
+
+```{r}
+ki_poss.dat = subset(survey.data, Species == "Grey backed gull")
+
+ki_poss.dat$colours = NA
+ki_poss.dat$colours[ki_poss.dat$Bird.flight.height < 22] = "#CCCCCC"
+ki_poss.dat$colours[ki_poss.dat$Bird.flight.height >= 22] = "#EE0000"
+
+
+
+scatterplot3d(x = ki_poss.dat$Longitude, y = ki_poss.dat$Latitude, z = ki_poss.dat$Bird.flight.height,  pch = 19, xlab = "Longitude", ylab = "Latitude", zlab = "Flight Height (m)", box = FALSE, type = "h", color = ki_poss.dat$colours)
+
+```
+
+A quick look suggests that the kittiwake & grey backed gull patterns are similar. 
+
+
+lets have a look at histograms of bird flight height
+
+```{r}
+par(mfrow = c(1,3))
+
+hist(gx.dat$Bird.flight.height,breaks = 50, main = "Gannet")
+hist(ki.dat$Bird.flight.height,breaks = 50, main = "Kittiwake")
+hist(ki_poss.dat$Bird.flight.height,breaks = 50, main = "Possible Kittiwake")
+
+
+
+
+```
+
+
+Again Kittiwake & possible Kittiwake look similar..At first glance, there appear to be similarities with the plots presented in the digital aerial survey report, particularly for kittiwake. 
+
+
+Lets examine in more detail...
+As an initial first step, we can bin the data to the nearest metre and then re-plot histograms & compare to distributions from boat & digital aerial survey
+
+Gannet first
+
+```{r}
+
+gannetDAS = read.csv(text=getURL("https://raw.githubusercontent.com/aonghaiscook/LIDAR-Flight-Heights/master/Gannet_Modelled_distribution_DIGITAL_AERIAL_SURVEY.csv"), header=T)
+
+boatDATA = read.csv(text=getURL("https://raw.githubusercontent.com/aonghaiscook/LIDAR-Flight-Heights/master/FlightHeight_BOAT_DISTRIBUTIONS.csv"), header=T)
+
+
+gx.dat$flightROUND = round(gx.dat$Bird.flight.height)
+
+gx.height.dist = vector()
+
+for(i in 1:300){
+  
+  gx.height.dist[i] = nrow(subset(gx.dat, flightROUND == i))/nrow(gx.dat)
+  
+}
+
+plot(seq(1,300,1),gx.height.dist, xlim = c(0,100), ylim = c(0,0.25), xlab = "Height Above Sea Level", ylab = "Proportion of Birds", type = "l")
+
+lines(gannetDAS$height, gannetDAS$prob_med, col = "red")
+lines(boatDATA$Height, boatDATA$Northern_Gannet, col = "blue")
+
+```
+
+Now Kittiwake
+
+```{r}
+
+KittDAS = read.csv(text=getURL("https://raw.githubusercontent.com/aonghaiscook/LIDAR-Flight-Heights/master/Kittiwake_Modelled_distribution_DIGITAL_AERIAL_SURVEY.csv"), header=T)
+
+ki.dat$flightROUND = round(ki.dat$Bird.flight.height)
+ki.height.dist = vector()
+
+for(i in 1:300){
+  
+  ki.height.dist[i] = nrow(subset(ki.dat, flightROUND == i))/nrow(ki.dat)
+  
+}
+
+ki_poss.dat$flightROUND = round(ki_poss.dat$Bird.flight.height)
+
+ki_poss.height.dist = vector()
+
+for(i in 1:300){
+  
+  ki_poss.height.dist[i] = nrow(subset(ki_poss.dat, flightROUND == i))/nrow(ki_poss.dat)
+  
+}
+
+
+
+plot(seq(1,300,1),ki.height.dist, xlim = c(0,100), ylim = c(0,0.35), xlab = "Height Above Sea Level", ylab = "Proportion of Birds", type = "l")
+
+lines(KittDAS$height, KittDAS$prob_med, col = "red")
+lines(boatDATA$Height, boatDATA$Black_Legged_Kittiwake, col = "blue")
+lines(seq(1,300,1), ki_poss.height.dist, lty = 2)
+
+```
+
+The digital image/LiDAR beam forms an effective pyramid with the plane at the point, what proportion of the ground area is missing at each height?
+
+```{r}
+# plane altitude 300m
+# transect width 350m
+
+## first treat pyramid as 2 right angled triangles & work out length of hypotenuse
+
+h2 = (300^2) + (175^2)
+h = sqrt(h2)
+
+## now use trignometry to work out angles at base of the pyramid
+
+base.theta = asin(300/h)
+
+## now for each height, we can work out the proportion of the total ground area covered, again using trigonometry
+
+miss.area = vector()
+prop.miss.area = vector()
+
+for (i in 1:300){
+  
+  opp = i / tan(base.theta)   
+  
+  miss.area[i] = opp * i 
+  if(i == 1) area2 = miss.area[i]
+  if(i != 1) area2 = miss.area[i] - miss.area[i-1]
+  
+  prop.miss.area[i] = 1-((350 - area2)/350)
+  
+  
+
+}
+  
+  
+plot(seq(1,300,1), prop.miss.area, type = "l", xlab = "Height above Sea-level", ylab = "Proportion Of 1m Height Band Not Covered")
+
+
+
+
+
+
+
+
+
+```
+
+
+## Simulated Distributions
+
+
+Based on the initial plots above, data look suitable for deriving flight height distributions. It is important that the distributions underlying these data are sufficiently flexible that they do not constrain the shape of the flight height distribution, but not so flexible that they overfit to the data. 
+
+In order to test this, we are going to simulate data using different distributions and then try and fit these data using each distribution in turn. We will assess how well different distributions fit the data by investigating 1) the proportion of values outside bootstrapped confidence intervals and 2) comparing predicted and observed proportions of birds within a 20-120m flight height window. 
+
+The distributions we will test are 
+
+* Normal
+* Log-normal
+* Gamma
+* Poisson
+* Normal Mixture
+* Gamma Mixture
+
+First Step is to load the necessary libraries
+
+```{r}
+library(mixtools)
+library(fitdistrplus)
+```
+
+Now try to fit the flight heights data using the distributions above.
+
+The first step is to get teh shape of the distributions & then draw random samples from them.
+
+#### Normal
+
+```{r}
+normal.GX = fitdistr(gx.dat$Bird.flight.height, "normal")
+normal.GX.Fit = dnorm(seq(1,300,1), normal.GX$estimate[1], normal.GX$estimate[2])
+plot(seq(1,300,1), normal.GX.Fit, type = "l", ylab = "Prop. at height", xlab = "Height above Sea-level")
+
+GX.sim.10birds.norm = data.frame(matrix(data = 0, nrow = 10, ncol = 1000))
+GX.sim.25birds.norm = data.frame(matrix(data = 0, nrow = 25, ncol = 1000))
+GX.sim.50birds.norm = data.frame(matrix(data = 0, nrow = 50, ncol = 1000))
+GX.sim.75birds.norm = data.frame(matrix(data = 0, nrow = 75, ncol = 1000))
+GX.sim.100birds.norm = data.frame(matrix(data = 0, nrow = 100, ncol = 1000))
+GX.sim.150birds.norm = data.frame(matrix(data = 0, nrow = 150, ncol = 1000))
+GX.sim.200birds.norm = data.frame(matrix(data = 0, nrow = 200, ncol = 1000))
+
+for(i in 1:1000){
+  
+  
+  GX.sim.10birds.norm[,i] = rnorm(10, normal.GX$estimate[1], normal.GX$estimate[2])
+  GX.sim.25birds.norm[,i] = rnorm(25, normal.GX$estimate[1], normal.GX$estimate[2])
+  GX.sim.50birds.norm[,i] = rnorm(50, normal.GX$estimate[1], normal.GX$estimate[2])
+  GX.sim.75birds.norm[,i] = rnorm(75, normal.GX$estimate[1], normal.GX$estimate[2])
+  GX.sim.100birds.norm[,i] = rnorm(100, normal.GX$estimate[1], normal.GX$estimate[2])
+  GX.sim.150birds.norm[,i] = rnorm(150, normal.GX$estimate[1], normal.GX$estimate[2])
+  GX.sim.200birds.norm[,i] = rnorm(200, normal.GX$estimate[1], normal.GX$estimate[2])
+  
+  if(i == 1000) updateStatus(paste("@AonghaisC 1000 random selections made from a normal distribution at", Sys.time()))
+  
+}
+
+
+```
+
+#### Log-normal
+
+```{r}
+lognormal.GX = fitdistr(gx.dat$Bird.flight.height, "lognormal")
+lognormal.GX.Fit = dlnorm(seq(1,300,1), lognormal.GX$estimate[1], lognormal.GX$estimate[2])
+plot(seq(1,300,1), lognormal.GX.Fit, type = "l", ylab = "Prop. at height", xlab = "Height above Sea-level")
+
+GX.sim.10birds.lnorm = data.frame(matrix(data = 0, nrow = 10, ncol = 1000))
+GX.sim.25birds.lnorm = data.frame(matrix(data = 0, nrow = 25, ncol = 1000))
+GX.sim.50birds.lnorm = data.frame(matrix(data = 0, nrow = 50, ncol = 1000))
+GX.sim.75birds.lnorm = data.frame(matrix(data = 0, nrow = 75, ncol = 1000))
+GX.sim.100birds.lnorm = data.frame(matrix(data = 0, nrow = 100, ncol = 1000))
+GX.sim.150birds.lnorm = data.frame(matrix(data = 0, nrow = 150, ncol = 1000))
+GX.sim.200birds.lnorm = data.frame(matrix(data = 0, nrow = 200, ncol = 1000))
+
+for(i in 1:1000){
+  
+  
+  GX.sim.10birds.lnorm[,i] = rlnorm(10, lognormal.GX$estimate[1], lognormal.GX$estimate[2])
+  GX.sim.25birds.lnorm[,i] = rlnorm(25, lognormal.GX$estimate[1], lognormal.GX$estimate[2])
+  GX.sim.50birds.lnorm[,i] = rlnorm(50, lognormal.GX$estimate[1], normal.GX$estimate[2])
+  GX.sim.75birds.lnorm[,i] = rlnorm(75, lognormal.GX$estimate[1], lognormal.GX$estimate[2])
+  GX.sim.100birds.lnorm[,i] = rlnorm(100, lognormal.GX$estimate[1], lognormal.GX$estimate[2])
+  GX.sim.150birds.lnorm[,i] = rlnorm(150, lognormal.GX$estimate[1], lognormal.GX$estimate[2])
+  GX.sim.200birds.lnorm[,i] = rlnorm(200, lognormal.GX$estimate[1], lognormal.GX$estimate[2])
+  
+  if(i == 1000) updateStatus(paste("@AonghaisC 1000 random selections made from a log-normal distribution at", Sys.time()))
+  
+}
+
+
+```
+
+#### Poisson
+
+```{r}
+pois.GX = fitdistr(gx.dat$Bird.flight.height, "poisson")
+pois.GX.Fit = dpois(seq(1,300,1), pois.GX$estimate)
+plot(seq(1,300,1), pois.GX.Fit, type = "l", ylab = "Prop. at height", xlab = "Height above Sea-level")
+
+GX.sim.10birds.pois = data.frame(matrix(data = 0, nrow = 10, ncol = 1000))
+GX.sim.25birds.pois = data.frame(matrix(data = 0, nrow = 25, ncol = 1000))
+GX.sim.50birds.pois = data.frame(matrix(data = 0, nrow = 50, ncol = 1000))
+GX.sim.75birds.pois = data.frame(matrix(data = 0, nrow = 75, ncol = 1000))
+GX.sim.100birds.pois = data.frame(matrix(data = 0, nrow = 100, ncol = 1000))
+GX.sim.150birds.pois = data.frame(matrix(data = 0, nrow = 150, ncol = 1000))
+GX.sim.200birds.pois = data.frame(matrix(data = 0, nrow = 200, ncol = 1000))
+
+for(i in 1:1000){
+  
+  
+  GX.sim.10birds.pois[,i] = rpois(10, pois.GX$estimate)
+  GX.sim.25birds.pois[,i] = rpois(25, pois.GX$estimate)
+  GX.sim.50birds.pois[,i] = rpois(50, pois.GX$estimate)
+  GX.sim.75birds.pois[,i] = rpois(75, pois.GX$estimate)
+  GX.sim.100birds.pois[,i] = rpois(100, pois.GX$estimate)
+  GX.sim.150birds.pois[,i] = rpois(150, pois.GX$estimate)
+  GX.sim.200birds.pois[,i] = rpois(200, pois.GX$estimate)
+  
+if (i == 1000) updateStatus(paste("@AonghaisC 1000 random selections made from a poisson distribution at", Sys.time()))
+  
+}
+
+
+```
+
+#### Gamma
+
+```{r}
+gamma.GX = fitdistr(gx.dat$Bird.flight.height, "gamma")
+gamma.GX.Fit = dgamma(seq(1,300,1), gamma.GX$estimate[1], gamma.GX$estimate[2])
+plot(seq(1,300,1), gamma.GX.Fit, type = "l", ylab = "Prop. at height", xlab = "Height above Sea-level")
+
+GX.sim.10birds.gamma = data.frame(matrix(data = 0, nrow = 10, ncol = 1000))
+GX.sim.25birds.gamma = data.frame(matrix(data = 0, nrow = 25, ncol = 1000))
+GX.sim.50birds.gamma = data.frame(matrix(data = 0, nrow = 50, ncol = 1000))
+GX.sim.75birds.gamma = data.frame(matrix(data = 0, nrow = 75, ncol = 1000))
+GX.sim.100birds.gamma = data.frame(matrix(data = 0, nrow = 100, ncol = 1000))
+GX.sim.150birds.gamma = data.frame(matrix(data = 0, nrow = 150, ncol = 1000))
+GX.sim.200birds.gamma = data.frame(matrix(data = 0, nrow = 200, ncol = 1000))
+
+for(i in 1:1000){
+  
+  
+  GX.sim.10birds.gamma[,i] = rgamma(10, gamma.GX$estimate[1],gamma.GX$estimate[2])
+  GX.sim.25birds.gamma[,i] = rgamma(25, gamma.GX$estimate[1],gamma.GX$estimate[2])
+  GX.sim.50birds.gamma[,i] = rgamma(50, gamma.GX$estimate[1],gamma.GX$estimate[2])
+  GX.sim.75birds.gamma[,i] = rgamma(75, gamma.GX$estimate[1],gamma.GX$estimate[2])
+  GX.sim.100birds.gamma[,i] = rgamma(100, gamma.GX$estimate[1],gamma.GX$estimate[2])
+  GX.sim.150birds.gamma[,i] = rgamma(150, gamma.GX$estimate[1],gamma.GX$estimate[2])
+  GX.sim.200birds.gamma[,i] = rgamma(200, gamma.GX$estimate[1],gamma.GX$estimate[2])
+  
+if (i == 1000) updateStatus(paste("@AonghaisC 1000 random selections made from a gamma distribution at", Sys.time()))
+  
+}
+
+
+```
+
+#### Normal Mixture
+
+```{r}
+normmix.GX = normalmixEM(gx.dat$Bird.flight.height)
+
+## function to get density plot for normal mixture model
+
+pnormmix = function(x, min.height, max.height) {
+  (x["lambda"][[1]][1] *
+        dnorm(seq(min.height,max.height,1), x["mu"][[1]][1], x["sigma"][[1]][1])) + 
+	(x["lambda"][[1]][2] * 
+	         dnorm(seq(min.height,max.height,1), x["mu"][[1]][2], x["sigma"][[1]][2]))
+}  
+  
+##
+
+normmix.GX.Fit  = pnormmix(normmix.GX, 1, 300)
+ plot(seq(1,300,1), normmix.GX.Fit,type = "l", ylab = "Prop. at height", xlab = "Height above Sea-level")
+
+GX.sim.10birds.normmix = data.frame(matrix(data = 0, nrow = 10, ncol = 1000))
+GX.sim.25birds.normmix = data.frame(matrix(data = 0, nrow = 25, ncol = 1000))
+GX.sim.50birds.normmix = data.frame(matrix(data = 0, nrow = 50, ncol = 1000))
+GX.sim.75birds.normmix = data.frame(matrix(data = 0, nrow = 75, ncol = 1000))
+GX.sim.100birds.normmix = data.frame(matrix(data = 0, nrow = 100, ncol = 1000))
+GX.sim.150birds.normmix = data.frame(matrix(data = 0, nrow = 150, ncol = 1000))
+GX.sim.200birds.normmix = data.frame(matrix(data = 0, nrow = 200, ncol = 1000))
+
+for(i in 1:1000){
+  
+  
+  GX.sim.10birds.normmix[,i] = rnormmix(10, normmix.GX$lambda,normmix.GX$mu,normmix.GX$sigma)
+  GX.sim.25birds.normmix[,i] = rnormmix(25, normmix.GX$lambda,normmix.GX$mu,normmix.GX$sigma)
+  GX.sim.50birds.normmix[,i] = rnormmix(50, normmix.GX$lambda,normmix.GX$mu,normmix.GX$sigma)
+  GX.sim.75birds.normmix[,i] = rnormmix(75, normmix.GX$lambda,normmix.GX$mu,normmix.GX$sigma)
+  GX.sim.100birds.normmix[,i] = rnormmix(100, normmix.GX$lambda,normmix.GX$mu,normmix.GX$sigma)
+  GX.sim.150birds.normmix[,i] = rnormmix(150, normmix.GX$lambda,normmix.GX$mu,normmix.GX$sigma)
+  GX.sim.200birds.normmix[,i] = rnormmix(200, normmix.GX$lambda,normmix.GX$mu,normmix.GX$sigma)
+  
+if (i == 1000) updateStatus(paste("@AonghaisC 1000 random selections made from a normal-mixture distribution at", Sys.time()))
+  
+}
+
+```
+
+#### Gamma-mixture
+
+```{r}
+gammamix.GX = gammamixEM(gx.dat$Bird.flight.height)
+
+## function to get density plot for normal mixture model
+
+pgammamix = function(x,min.height,max.height) {
+  
+  (x["lambda"][[1]][1] *
+    dgamma(seq(min.height,max.height,1), x$gamma.pars[1,1], x$gamma.pars[2,1])) +
+  (x["lambda"][[1]][2] *
+    dgamma(seq(min.height,max.height,1), x$gamma.pars[1,2], x$gamma.pars[2,2]))   
+
+    
+    }
+  
+###  
+gammamix.GX.Fit  = pgammamix(gammamix.GX, 1, 300)
+ plot(seq(1,300,1), gammamix.GX.Fit,type = "l", ylab = "Prop. at height", xlab = "Height above Sea-level")
+
+### Function to simulate random data 
+
+  rgammamix = function (n, lambda = 1, alpha = 0, beta = 1) 
+{
+    m <- length(lambda)
+    alpha <- matrix(alpha, nrow = m)
+    beta <- matrix(beta, nrow = m)
+    if ((r <- NCOL(alpha)) != NCOL(beta)) {
+        stop("mu and sigma must have the same number of columns", 
+            call. = FALSE)
+    }
+    z <- sample(m, n, replace = TRUE, prob = lambda)
+    matrix(rgamma(n * r, shape = as.vector(alpha[z, ]), scale = as.vector(beta[z, 
+        ])), n, r)
+}
+
+####
+  
+GX.sim.10birds.gammamix = data.frame(matrix(data = 0, nrow = 10, ncol = 1000))
+GX.sim.25birds.gammamix = data.frame(matrix(data = 0, nrow = 25, ncol = 1000))
+GX.sim.50birds.gammamix = data.frame(matrix(data = 0, nrow = 50, ncol = 1000))
+GX.sim.75birds.gammamix = data.frame(matrix(data = 0, nrow = 75, ncol = 1000))
+GX.sim.100birds.gammamix = data.frame(matrix(data = 0, nrow = 100, ncol = 1000))
+GX.sim.150birds.gammamix = data.frame(matrix(data = 0, nrow = 150, ncol = 1000))
+GX.sim.200birds.gammamix = data.frame(matrix(data = 0, nrow = 200, ncol = 1000))
+
+  
+  for(i in 1:1000){
+  
+  
+  GX.sim.10birds.gammamix[,i] = rgammamix(10, gammamix.GX$lambda,gammamix.GX$gamma.pars[1,],
+                                         gammamix.GX$gamma.pars[2,])
+  GX.sim.25birds.gammamix[,i] = rgammamix(25, gammamix.GX$lambda,gammamix.GX$gamma.pars[1,],
+                                         gammamix.GX$gamma.pars[2,])
+  GX.sim.50birds.gammamix[,i] = rgammamix(50, gammamix.GX$lambda,gammamix.GX$gamma.pars[1,],
+                                         gammamix.GX$gamma.pars[2,])
+  GX.sim.75birds.gammamix[,i] = rgammamix(75,gammamix.GX$lambda,gammamix.GX$gamma.pars[1,],
+                                         gammamix.GX$gamma.pars[2,])
+  GX.sim.100birds.gammamix[,i] = rgammamix(100,gammamix.GX$lambda,gammamix.GX$gamma.pars[1,],
+                                         gammamix.GX$gamma.pars[2,])
+  GX.sim.150birds.gammamix[,i] = rgammamix(150,gammamix.GX$lambda,gammamix.GX$gamma.pars[1,],
+                                         gammamix.GX$gamma.pars[2,])
+  GX.sim.200birds.gammamix[,i] = rgammamix(200,gammamix.GX$lambda,gammamix.GX$gamma.pars[1,],
+                                         gammamix.GX$gamma.pars[2,])
+  
+if (i == 1000) updateStatus(paste("@AonghaisC 1000 random selections made from a gamma-mixture distribution at", Sys.time()))
+  
+}
+  
+
+
+```
+
+### Now to try fitting alternative distributions to the simulated data
+
+From each dataset need to get out predicted vs observed proportion of birds between 20 & 120m and the proportion of points outside bootstrapped confidence intervals.
+
+write a function to do this
+
+At present this function will attempt to fit a (user-specified) normal, log-normal or gamma distribution to 
+
+
+
+
+```{r}
+
+
+FitDistToData = function(a, distribution, iterations) {
+  
+out.tab = data.frame(matrix(data = 0, nrow = ncol(a), ncol = 5))
+names(out.tab) = c("prop_obs_CI", "obs20_120", "pred20_120", "l20_120", "u20_120")
+
+
+for(i in 1:ncol(a))
+  {
+  
+  df.name = deparse(substitute(a))
+  
+  dat = as.vector(a[,i])
+  dat.true.prop = density(a[,i], n = 300, from = 1, to = 300)$y
+  dat.true.prop = dat.true.prop/sum(dat.true.prop)
+  
+  if(distribution == "norm") dat.sim = fitdist(abs(dat), "norm")
+  if(distribution == "lnorm") dat.sim = fitdist(abs(dat), "lnorm")
+  if(distribution == "gamma") dat.sim = fitdist(abs(dat), "gamma")
+  
+  dat.sim.boot = bootdist(dat.sim, niter = iterations)
+  
+  out.tab$obs20_120[i] = length(dat[dat >=20 & dat <=120])/length(dat)
+  
+  
+  if(distribution == "norm") dist.sim.med = dnorm(seq(1,300,1),    summary(dat.sim.boot)$CI[1,1], summary(dat.sim.boot)$CI[2,1])
+ 
+  if(distribution == "lnorm") dist.sim.med = dlnorm(seq(1,300,1),    summary(dat.sim.boot)$CI[1,1], summary(dat.sim.boot)$CI[2,1])
+
+  if(distribution == "gamma")  dist.sim.med = dgamma(seq(1,300,1),    summary(dat.sim.boot)$CI[1,1], summary(dat.sim.boot)$CI[2,1])
+  
+  dist.sim.med = dist.sim.med/sum(dist.sim.med) 
+  out.tab$pred20_120[i] = sum(dist.sim.med[c(20:120)])
+  
+  boot.tab = data.frame(matrix(data = 0, nrow = iterations, ncol = 300))
+
+  for(z in 1:iterations){
+    
+  if(distribution == "norm") dist = dnorm(seq(1,300,1), summary(dat.sim.boot)$estim$mean[z],summary(dat.sim.boot)$estim$sd[z])
+  
+  if(distribution == "lnorm") dist = dlnorm(seq(1,300,1), summary(dat.sim.boot)$estim$mean[z],summary(dat.sim.boot)$estim$sd[z])
+     
+  if(distribution == "gamma") dist = dgamma(seq(1,300,1), summary(dat.sim.boot)$estim$shape[z],summary(dat.sim.boot)$estim$rate[z])
+     
+    boot.tab[z,] = dist/sum(dist)
+    
+  }
+  
+  dist.norm.low = apply(as.matrix(boot.tab), 2, quantile, probs = 0.025)
+  dist.norm.up = apply(as.matrix(boot.tab), 2, quantile, probs = 0.975)
+  
+  out.tab$l20_120[i] = sum(dist.norm.low[c(20:120)])
+  out.tab$u20_120[i] = sum(dist.norm.up[c(20:120)])
+  out.tab$prop_obs_CI[i] = length(which(dat.true.prop > dist.norm.up | dat.true.prop < dist.norm.low))/300
+  
+}
+
+return(out.tab)
+
+}
+
+```
+
+Ok, lets try to test this
+
+
+```{r}
+
+Begin = Sys.time()
+
+GX.sim.10birds.norm_NormalFit = FitDistToData(GX.sim.10birds.norm, "norm", 10)
+GX.sim.25birds.norm_NormalFit = FitDistToData(GX.sim.25birds.norm, "norm", 10)
+GX.sim.50birds.norm_NormalFit = FitDistToData(GX.sim.50birds.norm, "norm", 10)
+GX.sim.75birds.norm_NormalFit = FitDistToData(GX.sim.75birds.norm, "norm", 10)
+GX.sim.100birds.norm_NormalFit = FitDistToData(GX.sim.100birds.norm, "norm", 10)
+GX.sim.150birds.norm_NormalFit = FitDistToData(GX.sim.150birds.norm, "norm", 10)
+GX.sim.200birds.norm_NormalFit = FitDistToData(GX.sim.200birds.norm, "norm", 10)
+
+GX.sim.10birds.lnorm_NormalFit = FitDistToData(GX.sim.10birds.lnorm, "norm", 10)
+GX.sim.25birds.lnorm_NormalFit = FitDistToData(GX.sim.25birds.lnorm, "norm", 10)
+GX.sim.50birds.lnorm_NormalFit = FitDistToData(GX.sim.50birds.lnorm, "norm", 10)
+GX.sim.75birds.lnorm_NormalFit = FitDistToData(GX.sim.75birds.lnorm, "norm", 10)
+GX.sim.100birds.lnorm_NormalFit = FitDistToData(GX.sim.100birds.lnorm, "norm", 10)
+GX.sim.150birds.lnorm_NormalFit = FitDistToData(GX.sim.150birds.lnorm, "norm", 10)
+GX.sim.200birds.lnorm_NormalFit = FitDistToData(GX.sim.200birds.lnorm, "norm", 10)
+
+end.time = Sys.time()
+
+updateStatus(paste("@AonghaisC simulated data fitted to normal distributions at", Sys.time(), "in", round((end.time - Begin)[[1]], 2), attributes(Begin - end.time)$units ))
+
+
+
+GX.sim.10birds.gamma_NormalFit = FitDistToData(GX.sim.10birds.gamma, "norm", 10)
+GX.sim.25birds.gamma_NormalFit = FitDistToData(GX.sim.25birds.gamma, "norm", 10)
+GX.sim.50birds.gamma_NormalFit = FitDistToData(GX.sim.50birds.gamma, "norm", 10)
+GX.sim.75birds.gamma_NormalFit = FitDistToData(GX.sim.75birds.gamma, "norm", 10)
+GX.sim.100birds.gamma_NormalFit = FitDistToData(GX.sim.100birds.gamma, "norm", 10)
+GX.sim.150birds.gamma_NormalFit = FitDistToData(GX.sim.150birds.gamma, "norm", 10)
+GX.sim.200birds.gamma_NormalFit = FitDistToData(GX.sim.200birds.gamma, "norm", 10)
+
+GX.sim.10birds.normmix_NormalFit = FitDistToData(GX.sim.10birds.normmix, "norm", 10)
+GX.sim.25birds.normmix_NormalFit = FitDistToData(GX.sim.25birds.normmix, "norm", 10)
+GX.sim.50birds.normmix_NormalFit = FitDistToData(GX.sim.50birds.normmix, "norm", 10)
+GX.sim.75birds.normmix_NormalFit = FitDistToData(GX.sim.75birds.normmix, "norm", 10)
+GX.sim.100birds.normmix_NormalFit = FitDistToData(GX.sim.100birds.normmix, "norm", 10)
+GX.sim.150birds.normmix_NormalFit = FitDistToData(GX.sim.150birds.normmix, "norm", 10)
+GX.sim.200birds.normmix_NormalFit = FitDistToData(GX.sim.200birds.normmix, "norm", 10)
+
+
+GX.sim.10birds.gammamix_NormalFit = FitDistToData(GX.sim.10birds.gammamix, "norm", 10)
+GX.sim.25birds.gammamix_NormalFit = FitDistToData(GX.sim.25birds.gammamix, "norm", 10)
+GX.sim.50birds.gammamix_NormalFit = FitDistToData(GX.sim.50birds.gammamix, "norm", 10)
+GX.sim.75birds.gammamix_NormalFit = FitDistToData(GX.sim.75birds.gammamix, "norm", 10)
+GX.sim.100birds.gammamix_NormalFit = FitDistToData(GX.sim.100birds.gammamix, "norm", 10)
+GX.sim.150birds.gammamix_NormalFit = FitDistToData(GX.sim.150birds.gammamix, "norm", 10)
+GX.sim.200birds.gammamix_NormalFit = FitDistToData(GX.sim.200birds.gammamix, "norm", 10)
+
+```
+
+Make coloured table to show how fit changes with sample size & between distributions
+
+```{r}
+library(plotrix)
+
+norm.Fit = c(mean(GX.sim.10birds.norm_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.25birds.norm_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.50birds.norm_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.75birds.norm_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.100birds.norm_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.150birds.norm_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.200birds.norm_NormalFit[,1], na.rm = TRUE)
+             )
+
+lnorm.Fit = c(mean(GX.sim.10birds.lnorm_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.25birds.lnorm_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.50birds.lnorm_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.75birds.lnorm_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.100birds.lnorm_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.150birds.lnorm_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.200birds.lnorm_NormalFit[,1], na.rm = TRUE)
+             )
+
+gamma.Fit = c(mean(GX.sim.10birds.gamma_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.25birds.gamma_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.50birds.gamma_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.75birds.gamma_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.100birds.gamma_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.150birds.gamma_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.200birds.gamma_NormalFit[,1], na.rm = TRUE)
+             )
+
+normmix.Fit = c(mean(GX.sim.10birds.normmix_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.25birds.normmix_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.50birds.normmix_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.75birds.normmix_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.100birds.normmix_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.150birds.normmix_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.200birds.normmix_NormalFit[,1], na.rm = TRUE)
+             )
+
+
+gammamix.Fit = c(mean(GX.sim.10birds.gammamix_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.25birds.gammamix_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.50birds.gammamix_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.75birds.gammamix_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.100birds.gammamix_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.150birds.gammamix_NormalFit[,1], na.rm = TRUE),
+             mean(GX.sim.200birds.gammamix_NormalFit[,1], na.rm = TRUE)
+             )
+
+
+NormFit.mat = rbind(norm.Fit,lnorm.Fit,gamma.Fit, normmix.Fit,gammamix.Fit)
+
+colour.mat = matrix(data = 0, ncol = ncol(NormFit.mat), nrow = nrow(NormFit.mat))
+
+for(i in 1:ncol(colour.mat)){
+for(j in 1:nrow(colour.mat)){
+
+ if(NormFit.mat[j, i] > 0.9) colour.mat[j,i] <- "indianred4"
+ if(NormFit.mat[j, i] <= 0.9 & NormFit.mat[j, i] > 0.8 ) colour.mat[j,i] <- "indianred3"
+ if(NormFit.mat[j, i] <= 0.8 & NormFit.mat[j, i] > 0.7 ) colour.mat[j,i] <- "indianred2"
+ if(NormFit.mat[j, i] <= 0.7 & NormFit.mat[j, i] > 0.6 ) colour.mat[j,i] <- "indianred1"
+ if(NormFit.mat[j, i] <= 0.6 & NormFit.mat[j, i] > 0.5 ) colour.mat[j,i] <- "gray100"
+ if(NormFit.mat[j, i] <= 0.5 & NormFit.mat[j, i] > 0.4 ) colour.mat[j,i] <- "darkolivegreen1"
+ if(NormFit.mat[j, i] <= 0.4 & NormFit.mat[j, i] > 0.3 ) colour.mat[j,i] <- "darkolivegreen2"
+ if(NormFit.mat[j, i] <= 0.3 & NormFit.mat[j, i] > 0.2 ) colour.mat[j,i] <- "darkolivegreen3"
+ if(NormFit.mat[j, i] <= 0.2 ) colour.mat[j,i] <- "darkolivegreen4"
+
+ }
+}
+
+jpeg("Y://SG12 LiDAR Flight Heights/analysis/LIDAR-Flight-Heights/ModelFit.jpeg")
+
+color2D.matplot(NormFit.mat, cellcolors = colour.mat, show.values = FALSE, axes = F, xlab = "", ylab = "", border = NA)
+
+dev.off()
+
+end.time = Sys.time()
+
+updateStatus(paste("@AonghaisC: Simulated datasets fitted to normal distributions in",round((end.time - Begin)[[1]], 2), attributes(Begin - end.time)$units ), mediaPath = "Y://SG12 LiDAR Flight Heights/analysis/LIDAR-Flight-Heights/ModelFit.jpeg")
+
+
+```
+
+
+
+
+
